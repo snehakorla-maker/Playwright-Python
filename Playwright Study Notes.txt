@@ -1,0 +1,548 @@
+What is Playwright?
+
+# It's a tool to test websites from start to end
+
+What browsers does it work with?
+
+# Works with all big browsers: Chromium (like Chrome, Edge), Webkit (like Safari), Firefox
+
+What OS does it work with?
+
+# Windows, Linux, MAC
+# Can run tests in CI/CD (Jenkins, etc.)
+
+# Can run in headless (no browser window) OR headed (you csee browser open)
+# Can also pretend to be a mobile phone (mobile emulation)
+
+System Requirements
+
+# At least 4 GB RAM (8 GB better)
+# Disk space: around 1.5 GB
+# Stable internet
+
+https://playwright.dev/python/docs/intro#system-requirements
+
+Install Python
+
+Step 1: Check if python is already installed
+	python --version or py --version
+
+Step 2: Download Python installer from https://www.python.org/
+
+Step 3: Create a folder for python
+
+Step 4: Run python installer and use the folder destination
+
+Step 5: Also check if PATH env variables has python and python/scripts folder added
+
+Step 6: Also check pip
+	pip --version
+
+Install Playwright
+
+Step 1: Create a new folder for playwright project
+	mkdir playwright_demo
+	cd playwright_demo
+
+Step 2: Create a python virtual env for this project
+	python -m venv venv
+	source venv/bin/activate	# Mac/Linux
+	venv\Scripts\activate		# Windows
+
+Step 3: Install playwright
+	pip install playwright
+	playwright --version
+
+	Can also install with pytest
+	pip install pytest-playwright
+
+Step 4: Install browser binaries 
+	playwright install
+	This downloads Chromium, Firefox, Webkit for testing
+
+Step 5: Verify installation
+	python -m playwright --version or playwright --version
+
+
+Playwright Test (Open a webpage)
+
+Step 1: Create a new python file
+	touch first_test.py	# Mac/Linux
+	type nul>first_test.py	# Windows
+
+Step 2: Write this script in first_test.py
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Playwright with Pytest
+
+pip install pytest-playwright
+
+Adds pytest integration (fixtures, CLI support)
+
+- This installs the pytest plugin for Playwright
+- Write tests using pytest structure (def test_...)
+- Use fixtured like page, browser, etc., without manually launching the browser
+- Easily run tests with pytest command
+
+# pytest is a testing framework for Python - it's used to write simple, scalable and readable test cases
+# if already installed playwright we can install pytest-playwright in the same project, they are compatible and often used together
+# in fact, playwright gives the raw API while pytest-playwright gives test structure and automation convenience
+
+
+Step 1: Install playwright pytest plugin
+	pip install pytest-playwright
+
+Step 2: Install browser binaries
+	playwright install
+
+Step 3: Check installations
+	playwright --version
+	pytest --version
+	pip list
+	pip show pytest-playwright
+
+Step 4: Create a sample test file test_sample.py
+	def test_example():
+    	   assert 1+1 == 2 
+
+Step 5: Run and check
+	pytest test_sample.py
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+What is a test in Pytest?
+
+# A test is a function whose name starts with "test_"
+# Pytest automatically finds and runs these functions
+
+Write a pytest function line by line
+
+Step 1: In your project create a folder named: tests
+
+Step 2: Inside tests folder create a file: test_google.py
+
+Step 3: Start writing a simple test line by line
+
+Step 4: Add import statements
+	import re				# re is for regex (used in title check)
+	from playwright.sync_api import expect  # expect gives smart test assertions like "page should have this title"
+
+Step 5: Write the test function
+	def test_google_search(page):
+	
+	# Function name starts with test_ so pytest will detect it
+	# page is automatically injected from Playwright (you get a browser page)
+
+Step 6: Navigate to Google (and skip the "Before you proceed" screen)
+	page.goto("https://www.google.com/ncr")
+
+	# this loads Google without regional popups
+	# page.goto() tells Playwright to open a webpage
+
+Step 7 (optional): Handle the "Accept All" popup
+	try:
+            page.get_by_role("button", name="Accept all").click(timeout=5000)
+    	except:
+            print("No popup to accept")
+
+	# Google sometimes shows a cookie popup. This tries to click "Accept all". If not found, it skips with a message.
+
+Step 8: Type in Search Box
+	page.get_by_role("combobox", name="Search").fill("Playwright Python")
+
+	# Finds the search box (role = combobox, name = Search)
+	# Fills it with Playwright Python
+
+Step 9: Press Enter to search
+	page.keyboard.press("Enter")
+
+	# Simulates keyboard input - like a real user pressing Enter
+
+Step 10: Verify the page title contains the word "Playwright"
+	expect(page).to_have_title(re.compile("Playwright", re.IGNORECASE))
+
+	# Asserts that the title has "Playwright" after the search expect() wait automatically for title to match
+
+# If you want to slow down
+  - add wait	page.wait_for_timeout(3000) 3 seconds
+  - Or debug 	page.pause()
+
+Step 11: Run and verify
+	pytest .\tests\test_google.py
+
+Select browser	--browser=chromium
+		--browser=firefox
+		--browser=webkit
+
+Headed or Headless Mode		--headed
+				--headless
+
+Capture Screenshots	--screenshot=on
+			off (default)
+			on
+			only-on-failure
+
+Record Video		--video=on
+			off (default)
+			retain_on_failure
+			on-first-retry
+
+# can also generate html file after installing pytest-html and add option --html=report.html
+# Check all options	pytest --help
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Create Projecr Structure for the Test Framework
+
+Step 1: Check the required libraries are installed
+	pip list
+
+Step 2: On cmd goto your root project folder
+	cd playwright_pytest_project
+
+Step 3: Create sub-folders
+	mkdir tests pages utils reports
+
+Step 4: Create and edit conftest.py in root
+
+import pytest
+from playwright.sync_api import sync_playwright
+
+@pytest.fixture(scope="session")
+def browser():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        yield browser
+        browser.close()
+
+@pytest.fixture
+def page(browser):
+    page = browser.new_page()
+    yield page
+    page.close()
+
+# this gives every test a fresh page object using Chromium
+# here the fixture browser:
+  - Starts the browser (Chromium) once per session
+  - yield lets the test use the browser
+  - After tests are done, browser is closed
+# and the fixture page:
+  - uses the browser fixture
+  - creates a new browser page for each test
+  - yield page gives the test a fresh tab
+  - after test, it closes the tab
+# in your test just call the page fixture
+
+Step 5: Keep all test files inside the tests folder
+
+Step 6: Create pytest.ini in root and add options
+
+[pytest]
+addopts = --headed --browser chromium --html=reports/report.html --self-contained-html
+testpaths = tests --slowmo=200
+
+# this is a configuration file used by pytest to control how your tests run - without having to type long command-line options again and again
+# run tests simply with: pytest
+
+Step 7: (OPTIONAL) Create a requirements.txt file, so others can install your packages easily
+	pip freeze > requirements.txt
+# Now in a new project we can use this file to install everything	pip install -r requirements.txt
+
+Step 8: Run your project	pytest
+
+
+Project Structure
+
+tests/ 		# where test scripts go
+pages/		# for Page Object Model (optional but useful)
+conftest.py	# for setting up browser fixtures
+pytest.ini	# for config
+utils/		# for helpers (if needed)
+Reports/screenshots/logs (auto-generated)
+	
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+How to record in Playwright
+
+Step 1: Open terminal and goto your project location and activate virtual environment
+
+Step 2: Run command
+	playwright codegen https://www.google.com
+
+	# this opens a browser and a Playwright Inspector window side by side
+
+Step 3: Record your actions and save the script
+
+Step 4: (OPTIONAL) To record and save code directly into a file
+	playwright codegen https://www.google.com/ --target python -o my_test_script.py
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Page Object Model (POM)
+
+# Without POM
+  - Objects are not reusable
+  - Changes and maintenance is hard and manual
+  - Code is not very clean and readable
+
+# What is POM
+  - POM is a design pattern used in test automation
+  - It helps you write clean, reusable and maintenance test code
+	Each webpage = One class (e.g., LoginPage, HomePage)
+
+  - That class contains:
+	Locators: How to find elements on the page (like buttons, inputs)
+	Actions: What you can do (click, type, select, etc.)
+
+  - How it Helps
+	Reusability
+	Readability
+	Maintainability
+	Clean Code
+
+
+How to implement Page Object Model
+
+Under pages folder:
+
+# orangehrm_login_page
+
+from playwright.sync_api import Page
+
+class LoginPage:
+
+    def __init__(self, page:Page):
+        self.page = page
+        self.username_input = page.get_by_role("textbox", name="Username")
+        self.password_input = page.get_by_role("textbox", name="Password")
+        self.login_button = page.get_by_role("button", name="Login")
+
+    def login(self, username: str, password: str):
+        self.username_input.fill(username)
+        self.password_input.fill(password)
+        self.login_button.click()
+
+# orangehrm_home_page
+
+from playwright.sync_api import Page, expect
+
+class HomePage:
+
+    def __init__(self, page:Page):
+        self.page = page
+        self.upgrade_button = page.get_by_role("button", name="Upgrade")
+        self.performance_link = page.get_by_role("link", name="Performance")
+        self.dashboard_link = page.get_by_role("link", name="Dashboard")
+
+    def is_upgrade_button_visible(self):
+        expect(self.upgrade_button).to_be_visible()
+
+    def click_performance(self):
+        self.performance_link.click()
+
+    def click_dashboard(self):
+        self.dashboard_link.click()
+
+Under tests folder:
+
+# test_login_orangehrm.py
+
+import re
+from playwright.sync_api import Page, expect
+from pages.orangehrm_login_page import LoginPage
+from pages.orangehrm_home_page import HomePage
+
+
+def test_example(page: Page) -> None:
+    page.goto("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login")
+    
+    login_page = LoginPage(page)
+    home_page = HomePage(page)
+
+    login_page.login("Admin", "admin123")
+    expect(home_page.is_upgrade_button_visible()).to_be_true()
+    home_page.click_performance()
+    home_page.click_dashboard()
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+What is Trace Viewer
+
+- a GUI tool
+- records traces of your executed tests
+- can replay and inspect visually every action your performed
+
+How to use Trace Viewer
+
+Step 1: Run your tests using the flag --tracing		pytest --tracing on
+	This will record the trace and place it into the file named trace.zip in your test-results directory
+
+	on: Record trace for each test
+	off: Do not record trace (default)
+	retain-on-failure: Record trace for each test, but remove all traces from successful test runs
+
+Step 2: Check the trace.zip file is created
+
+Step 3: Open the trace using
+	playwright show-trace trace.zip
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+What is API Testing?
+
+# API testing means sending HTTP requests (like GET, POST, PUT, DELETE) to application's backend and verifying the response (status code, body, headers)
+# We test:
+  - is the response correct?
+  - is the status code right? (200 OK, 404 Not Found)
+  - is the returned response body valid?
+
+API testing 
+
+# test_api_get.py
+
+def test_api_get(playwright):
+    request = playwright.request.new_context(
+	extra_http_headers={
+	    "Accept": "application/json",
+	    "Authorization": "BEARER YOU_ACCESS_TOKEN",
+	    "X-Api-Key": "reqres-free-v123"
+	})
+    response = request.get("https://jsonplaceholder.typicode.com/posts/1")
+
+    assert response.status == 200
+    json_data = response.json()
+    print(json_data)
+    assert json_data["id"] == 1
+
+    request.dispose()
+    print("Test completed successfully!!")
+
+How to Assert Responses
+
+# Print response status
+print("Status Code", response.status)
+
+# Print the JSON response body
+print("Response JSON", response.json())
+
+# Validate values inside JSON
+assert json_data["id] == 1
+assert json_data["userID"] == 1
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+What is APIRequestContext
+
+# APIRequestContext is a class in Playwright
+# it gives you methods like .get(), .post(), .put(), .delete() to send HTTP requests
+# you don't create it directly -- you get it using p.request.new_context()
+
+Uses of APIRequestContext:
+
+- Send direct requests to API endpoints
+- Avoid loading the whole browser
+- Test APIs quickly and easily
+- Can be used standalone or along with UI tests
+
+How to use APIRequestContext
+
+Step 1: Create a request context
+	def test_api_get(playwright):
+    	    request = playwright.request.new_context()
+
+Step 2: Make an API call
+	response = request.get("https://jsonplaceholder.typicode.com/posts/1")
+
+Step 3: Use the response
+	print(response.status)		# Status code like 200, 404
+	print(response.json())		# JSON body
+	assert response.ok		# Shortcut for checking 2xx status
+
+Step 4: Dispose context
+	request.dispose()
+
+Example 1: GET API Call
+
+def test_api_get(playwright):
+    request = playwright.request.new_context()
+    response = request.get("https://jsonplaceholder.typicode.com/posts/1")
+
+    assert response.status == 200
+    json_data = response.json()
+    print(json_data)
+    assert json_data["id"] == 1
+
+    request.dispose()
+    print("Test completed successfully!!")
+
+Example 2: POST API Call
+
+def test_api_get(playwright):
+    request = playwright.request.new_context()
+    response = request.post(
+        "https://jsonplaceholder.typicode.com/posts",
+        data={"title": "qui est esse"}
+    )
+    assert response.status == 201
+    print(response.json())
+    request.dispose()
+
+Return Types
+
+- response.status	# Status Code (200, 404)
+- response.ok		# True if status is 2xx
+- response.json()	# Convert response body to Python dict
+- response.text()	# Get raw response as text
+- response.body()	# Get response as bytes
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+How to do Data Driven Testing
+
+Step 1: Create a simple test that uses some data
+
+Step 2: Parameterize the test, i.e., use variables in place of hard coded data values
+	pass values to the variables using @pytest.mark.parameterize() fixture
+	
+	@pytest.mark.parametrize(
+        	"username, password",
+        	[
+            	    ("Admin", "admin123"),
+            	    ("user1", "password1"),
+        	]
+	)
+
+
+Using CSV file
+
+Step 3: Now store the test data in a csv file
+
+Step 4: In the test file create function to read and get data from csv file
+
+	def get_csv_data() -> list:
+    		import csv
+    		data = []
+    		with open("./test_data/data.csv", newline='') as csvfile:
+        		reader = csv.reader(csvfile)
+        		for row in reader:
+            		    data.append(row)
+    		return data
+
+	@pytest.mark.parametrize("username,password", get_csv_data())
+
+Using JSON file
+
+Step 5: Create a json file and add the test data
+
+Step 6: In the test file create function to read and get data from json file
+
+	def get_json_data() -> list:
+    		import json
+    		with open("./test_data/data.json", "r") as file:
+        		data = json.load(file)
+    		return[(item['username'], item['password']) for item in data]
+
+	@pytest.mark.parametrize("username,password", get_json_data())
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------

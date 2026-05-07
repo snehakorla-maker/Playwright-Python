@@ -1,0 +1,58 @@
+# ==========================
+# Python
+# ==========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# ==========================
+# Virtual Environments
+# ==========================
+
+venv/
+.venv/
+env/
+ENV/
+
+# ==========================
+# Pytest
+# ==========================
+
+.pytest_cache/
+
+# ==========================
+# Playwright (Python)
+# ==========================
+
+# Browser binaries and cache
+.playwright/
+ms-playwright/
+
+# Test outputs / reports
+test-results/
+reports/
+
+# Optional generated HTML reports
+report1.html
+
+# ==========================
+# IDE / Editor Files
+# ==========================
+
+.vscode/
+.idea/
+
+*.swp
+*.swo
+*~
+
+# ==========================
+# OS / System Files
+# ==========================
+
+.DS_Store
+Thumbs.db
